@@ -1,0 +1,895 @@
+/* ================================================
+   style.css — All visual design for QuizBattle AI
+   
+   STRUCTURE:
+   1. CSS Variables (like Python variables for colors)
+   2. Reset & Base styles
+   3. Background effects
+   4. Navigation / Page switching
+   5. Setup Page styles
+   6. Loading Page styles
+   7. Game Page styles
+   8. Results Page styles
+   9. Animations (@keyframes)
+   10. Responsive (mobile)
+================================================ */
+
+
+/* ── 1. CSS VARIABLES ────────────────────────────
+   Define colors ONCE here, use everywhere.
+   Like doing: color = "#00f5ff" in Python
+   then using that variable everywhere.
+   Change one value here = changes whole site!
+─────────────────────────────────────────────── */
+:root {
+  /* Background colors — darkest to slightly lighter */
+  --bg:      #05070d;   /* main background */
+  --s1:      #0a0e1a;   /* surface 1 — cards */
+  --s2:      #0f1524;   /* surface 2 — inputs */
+  --s3:      #151d30;   /* surface 3 */
+
+  /* Border colors */
+  --b1:      #1a2340;
+  --b2:      #243060;
+
+  /* Player accent colors */
+  --p1:      #00f5ff;           /* Player 1 — cyan */
+  --p1d:     #00a8b0;           /* Player 1 dark */
+  --p1g:     rgba(0,245,255,0.12); /* Player 1 glow */
+
+  --p2:      #ff4d8d;           /* Player 2 — pink */
+  --p2d:     #b0004d;           /* Player 2 dark */
+  --p2g:     rgba(255,77,141,0.12); /* Player 2 glow */
+
+  /* Result colors */
+  --correct: #00ff88;   /* green — correct answer */
+  --wrong:   #ff4444;   /* red — wrong answer */
+  --gold:    #ffd700;   /* yellow — scores and highlights */
+
+  /* Text colors */
+  --text:    #e8edf8;   /* main text */
+  --muted:   #6b7a9e;   /* secondary text */
+
+  /* Font families */
+  --orb:     'Orbitron', monospace;  /* techy headings */
+  --exo:     'Exo 2', sans-serif;    /* body text */
+}
+
+
+/* ── 2. RESET & BASE ─────────────────────────────
+   Remove default browser styles.
+   Every browser adds its own margins/padding
+   which messes up our design — we remove them.
+─────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;  /* padding included in width calculation */
+  margin:  0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background:   var(--bg);
+  color:        var(--text);
+  font-family:  var(--exo);
+  min-height:   100vh;     /* at least full screen height */
+  overflow-x:   hidden;    /* no horizontal scroll */
+  position:     relative;
+}
+
+
+/* ── 3. BACKGROUND EFFECTS ───────────────────────
+   ::before and ::after are "pseudo-elements"
+   They create extra visual layers without
+   needing extra HTML elements.
+─────────────────────────────────────────────── */
+
+/* Grid pattern in background */
+body::before {
+  content: '';             /* must have content even if empty */
+  position: fixed;         /* stays fixed when scrolling */
+  inset: 0;                /* top:0 right:0 bottom:0 left:0 */
+  z-index: 0;              /* behind everything */
+  pointer-events: none;    /* doesn't block clicks */
+  background-image:
+    linear-gradient(rgba(0,245,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,245,255,0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Scanline effect (old CRT monitor look) */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  animation: scanline 8s linear infinite;
+}
+
+
+/* ── 4. PAGE SYSTEM ──────────────────────────────
+   All pages are hidden (display:none) by default.
+   JavaScript adds class "active" to show a page.
+   Only ONE page is visible at a time.
+─────────────────────────────────────────────── */
+.page {
+  position:        relative;
+  z-index:         1;           /* above background effects */
+  min-height:      100vh;       /* full screen */
+  display:         none;        /* HIDDEN by default */
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  padding:         2rem 1rem;
+}
+
+/* When JS adds class "active", the page becomes visible */
+.page.active {
+  display: flex;    /* show as flexbox column */
+}
+
+
+/* ── 5. SETUP PAGE ───────────────────────────────
+   Styles for Page 1 — the setup screen
+─────────────────────────────────────────────── */
+
+/* Big logo at the top */
+.logo {
+  text-align:    center;
+  margin-bottom: 3rem;
+}
+
+.logo-title {
+  font-family: var(--orb);
+  font-size:   clamp(2.5rem, 7vw, 5rem);  /* responsive font size */
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  /* gradient text — CSS3 feature */
+  background: linear-gradient(135deg, var(--p1), var(--p2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.logo-sub {
+  font-family:    var(--orb);
+  font-size:      0.75rem;
+  letter-spacing: 0.4em;
+  color:          var(--muted);
+  margin-top:     0.5rem;
+  text-transform: uppercase;
+}
+
+/* White card that contains the form */
+.setup-card {
+  background:    var(--s1);
+  border:        1px solid var(--b1);
+  border-radius: 20px;
+  padding:       2.5rem;
+  width:         100%;
+  max-width:     560px;   /* never wider than 560px */
+}
+
+.setup-title {
+  font-family:    var(--orb);
+  font-size:      0.7rem;
+  letter-spacing: 0.3em;
+  color:          var(--p1);
+  text-transform: uppercase;
+  margin-bottom:  1.5rem;
+}
+
+/* Two column grid for player name inputs */
+.player-inputs {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;  /* two equal columns */
+  gap:                   1rem;
+  margin-bottom:         1.5rem;
+}
+
+/* Player field labels */
+.player-field label {
+  font-size:      0.75rem;
+  letter-spacing: 0.1em;
+  color:          var(--muted);
+  text-transform: uppercase;
+  display:        block;
+  margin-bottom:  0.4rem;
+}
+.player-field.p1 label { color: var(--p1); }
+.player-field.p2 label { color: var(--p2); }
+
+/* Text input boxes */
+.player-field input,
+.topic-row input {
+  width:         100%;
+  background:    var(--s2);
+  border:        1px solid var(--b1);
+  border-radius: 8px;
+  padding:       0.75rem 1rem;
+  color:         var(--text);
+  font-family:   var(--exo);
+  font-size:     0.95rem;
+  outline:       none;           /* remove default browser outline */
+  transition:    border-color 0.2s;  /* smooth color change on focus */
+}
+
+/* When user clicks into input — glow effect */
+.player-field.p1 input:focus {
+  border-color: var(--p1);
+  box-shadow:   0 0 0 3px rgba(0,245,255,0.1);
+}
+.player-field.p2 input:focus {
+  border-color: var(--p2);
+  box-shadow:   0 0 0 3px rgba(255,77,141,0.1);
+}
+
+/* Topic input row */
+.topic-row {
+  margin-bottom: 1rem;
+}
+.topic-row label {
+  font-size:      0.75rem;
+  letter-spacing: 0.1em;
+  color:          var(--muted);
+  text-transform: uppercase;
+  display:        block;
+  margin-bottom:  0.4rem;
+}
+.topic-row input:focus {
+  border-color: var(--gold);
+  box-shadow:   0 0 0 3px rgba(255,215,0,0.1);
+}
+
+/* Suggestion pill buttons */
+.topic-suggestions {
+  display:       flex;
+  flex-wrap:     wrap;   /* wrap to next line if no space */
+  gap:           0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.sug-btn {
+  background:    var(--s2);
+  border:        1px solid var(--b1);
+  border-radius: 20px;
+  padding:       0.35rem 0.85rem;
+  font-size:     0.75rem;
+  color:         var(--muted);
+  cursor:        pointer;
+  transition:    all 0.2s;
+  font-family:   var(--exo);
+}
+.sug-btn:hover {
+  border-color: var(--gold);
+  color:        var(--gold);
+}
+
+/* Question count selector — 4 buttons in a row */
+.q-selector {
+  display:               grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:                   0.5rem;
+  margin-bottom:         1.5rem;
+}
+
+.q-btn {
+  background:    var(--s2);
+  border:        1px solid var(--b1);
+  border-radius: 8px;
+  padding:       0.5rem;
+  font-family:   var(--orb);
+  font-size:     0.8rem;
+  color:         var(--muted);
+  cursor:        pointer;
+  transition:    all 0.2s;
+}
+.q-btn.active,
+.q-btn:hover {
+  border-color: var(--gold);
+  color:        var(--gold);
+  background:   rgba(255,215,0,0.06);
+}
+
+/* The big START BATTLE button */
+.start-btn {
+  width:          100%;
+  padding:        1rem;
+  background:     linear-gradient(135deg, var(--p1), var(--p2));
+  border:         none;
+  border-radius:  10px;
+  font-family:    var(--orb);
+  font-size:      0.9rem;
+  font-weight:    700;
+  letter-spacing: 0.15em;
+  color:          #050810;     /* dark text on light button */
+  cursor:         pointer;
+  transition:     all 0.3s;
+  text-transform: uppercase;
+}
+.start-btn:hover:not(:disabled) {
+  transform:  translateY(-2px);   /* move up 2px on hover */
+  box-shadow: 0 8px 30px rgba(0,245,255,0.3);
+}
+.start-btn:disabled {
+  opacity:   0.5;
+  cursor:    not-allowed;
+  transform: none;
+}
+
+
+/* ── 6. LOADING PAGE ─────────────────────────────
+   Styles for Page 2 — while AI generates questions
+─────────────────────────────────────────────── */
+.loading-wrap {
+  text-align: center;
+}
+
+.loading-title {
+  font-family:    var(--orb);
+  font-size:      1.2rem;
+  color:          var(--p1);
+  letter-spacing: 0.2em;
+  margin-bottom:  2rem;
+}
+
+.loading-topic {
+  font-size:     0.85rem;
+  color:         var(--muted);
+  margin-bottom: 2rem;
+}
+
+/* Progress bar container */
+.loading-bar-wrap {
+  width:         300px;
+  height:        4px;
+  background:    var(--s2);
+  border-radius: 2px;
+  margin:        0 auto 1rem;
+  overflow:      hidden;
+}
+
+/* The actual bar that grows from 0% to 100% */
+.loading-bar {
+  height:     100%;
+  background: linear-gradient(90deg, var(--p1), var(--p2));
+  border-radius: 2px;
+  width:      0%;           /* starts at 0 — JS increases this */
+  transition: width 0.3s;   /* smooth growth */
+}
+
+.loading-status {
+  font-family:    var(--orb);
+  font-size:      0.75rem;
+  color:          var(--muted);
+  letter-spacing: 0.1em;
+}
+
+/* Animated "..." after loading text */
+.loading-dots::after {
+  content: '';
+  animation: dots 1.5s infinite;
+}
+
+
+/* ── 7. GAME PAGE ────────────────────────────────
+   Styles for Page 3 — the main quiz game
+─────────────────────────────────────────────── */
+#gamePage {
+  padding:         1rem;
+  justify-content: flex-start;  /* content at top */
+  padding-top:     1rem;
+}
+
+/* Scoreboard — 3 column grid: P1 | VS | P2 */
+.scoreboard {
+  display:        grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap:            1rem;
+  align-items:    center;
+  width:          100%;
+  max-width:      800px;
+  margin-bottom:  1.5rem;
+}
+
+/* Individual score boxes */
+.score-panel {
+  background:    var(--s1);
+  border-radius: 14px;
+  padding:       1rem 1.5rem;
+  display:       flex;
+  flex-direction: column;
+}
+.score-panel.p1 {
+  border:     2px solid var(--p1);
+  box-shadow: 0 0 20px rgba(0,245,255,0.1);
+}
+.score-panel.p2 {
+  border:      2px solid var(--p2);
+  box-shadow:  0 0 20px rgba(255,77,141,0.1);
+  text-align:  right;
+}
+
+.score-name {
+  font-family:    var(--orb);
+  font-size:      0.65rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom:  0.2rem;
+}
+.score-panel.p1 .score-name { color: var(--p1); }
+.score-panel.p2 .score-name { color: var(--p2); }
+
+.score-num {
+  font-family: var(--orb);
+  font-size:   2.2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.score-panel.p1 .score-num { color: var(--p1); }
+.score-panel.p2 .score-num { color: var(--p2); }
+
+.score-streak {
+  font-size: 0.7rem;
+  color:     var(--muted);
+  margin-top: 0.2rem;
+}
+
+/* Middle VS column */
+.middle-col {
+  text-align: center;
+}
+.vs-text {
+  font-family: var(--orb);
+  font-size:   1.2rem;
+  font-weight: 900;
+  color:       var(--muted);
+  display:     block;
+}
+.q-progress {
+  font-family:    var(--orb);
+  font-size:      0.65rem;
+  color:          var(--muted);
+  letter-spacing: 0.1em;
+  margin-top:     0.3rem;
+}
+
+/* Timer */
+.timer-wrap {
+  width:         100%;
+  max-width:     800px;
+  margin-bottom: 1.2rem;
+}
+.timer-bar {
+  height:        6px;
+  background:    var(--s2);
+  border-radius: 3px;
+  overflow:      hidden;
+}
+.timer-fill {
+  height:        100%;
+  border-radius: 3px;
+  /* These change via JS as time runs out */
+  transition:    width 0.1s linear, background 0.5s;
+}
+.timer-num {
+  font-family: var(--orb);
+  font-size:   0.75rem;
+  color:       var(--muted);
+  text-align:  right;
+  margin-top:  0.3rem;
+}
+
+/* Whose turn indicator */
+.turn-indicator {
+  width:         100%;
+  max-width:     800px;
+  margin-bottom: 1rem;
+  text-align:    center;
+}
+.turn-badge {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            0.5rem;
+  padding:        0.4rem 1.2rem;
+  border-radius:  20px;
+  font-family:    var(--orb);
+  font-size:      0.7rem;
+  letter-spacing: 0.15em;
+}
+.turn-badge.t1 {
+  background: var(--p1g);
+  border:     1px solid var(--p1);
+  color:      var(--p1);
+}
+.turn-badge.t2 {
+  background: var(--p2g);
+  border:     1px solid var(--p2);
+  color:      var(--p2);
+}
+.turn-dot {
+  width:         6px;
+  height:        6px;
+  border-radius: 50%;
+  animation:     pulse 1s infinite;
+}
+.t1 .turn-dot { background: var(--p1); }
+.t2 .turn-dot { background: var(--p2); }
+
+/* Question card */
+.question-card {
+  background:    var(--s1);
+  border:        1px solid var(--b1);
+  border-radius: 18px;
+  padding:       2rem;
+  width:         100%;
+  max-width:     800px;
+  margin-bottom: 1rem;
+}
+.q-number {
+  font-family:    var(--orb);
+  font-size:      0.65rem;
+  color:          var(--muted);
+  letter-spacing: 0.2em;
+  margin-bottom:  0.75rem;
+}
+.q-text {
+  font-size:   1.15rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color:       var(--text);
+}
+
+/* 4 answer buttons in a 2x2 grid */
+.options-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   0.75rem;
+  width:                 100%;
+  max-width:             800px;
+}
+
+/* Individual answer button */
+.opt-btn {
+  background:    var(--s1);
+  border:        1px solid var(--b1);
+  border-radius: 12px;
+  padding:       1rem 1.2rem;
+  cursor:        pointer;
+  transition:    all 0.2s;
+  display:       flex;
+  align-items:   center;
+  gap:           0.75rem;
+  text-align:    left;
+  font-family:   var(--exo);
+  font-size:     0.92rem;
+  color:         var(--text);
+  font-weight:   400;
+}
+.opt-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  background:   rgba(255,215,0,0.05);
+  transform:    translateY(-1px);
+}
+.opt-btn:disabled { cursor: default; }
+
+/* The A B C D letter badge on each option */
+.opt-letter {
+  font-family:    var(--orb);
+  font-size:      0.7rem;
+  font-weight:    700;
+  width:          24px;
+  height:         24px;
+  border-radius:  6px;
+  background:     var(--s2);
+  border:         1px solid var(--b1);
+  display:        flex;
+  align-items:    center;
+  justify-content: center;
+  flex-shrink:    0;
+  transition:     all 0.2s;
+}
+
+/* Correct answer — green highlight */
+.opt-btn.correct {
+  border-color: var(--correct);
+  background:   rgba(0,255,136,0.08);
+}
+.opt-btn.correct .opt-letter {
+  background:   var(--correct);
+  border-color: var(--correct);
+  color:        #050810;
+}
+
+/* Wrong answer — red highlight */
+.opt-btn.wrong {
+  border-color: var(--wrong);
+  background:   rgba(255,68,68,0.08);
+}
+.opt-btn.wrong .opt-letter {
+  background:   var(--wrong);
+  border-color: var(--wrong);
+  color:        #fff;
+}
+
+/* Other options fade out after answer */
+.opt-btn.disabled-fade { opacity: 0.4; }
+
+
+/* ── 8. RESULTS PAGE ─────────────────────────────
+   Styles for Page 4 — final scores
+─────────────────────────────────────────────── */
+#resultsPage { padding: 2rem 1rem; }
+
+.results-wrap {
+  width:      100%;
+  max-width:  700px;
+  text-align: center;
+}
+
+.results-title {
+  font-family:    var(--orb);
+  font-size:      clamp(1.5rem, 5vw, 3rem);
+  font-weight:    900;
+  margin-bottom:  0.5rem;
+  background:     linear-gradient(135deg, var(--gold), #ff8c00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.results-sub {
+  font-size:     0.9rem;
+  color:         var(--muted);
+  margin-bottom: 2.5rem;
+}
+
+.tie-banner {
+  background:    rgba(255,215,0,0.1);
+  border:        1px solid var(--gold);
+  border-radius: 12px;
+  padding:       1rem;
+  margin-bottom: 2rem;
+  font-family:   var(--orb);
+  font-size:     0.9rem;
+  color:         var(--gold);
+  letter-spacing: 0.1em;
+}
+
+/* Two column result cards — one per player */
+.results-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   1.5rem;
+  margin-bottom:         2rem;
+}
+.result-card {
+  border-radius: 16px;
+  padding:       1.8rem;
+  position:      relative;
+  overflow:      hidden;
+}
+.result-card.winner {
+  background: linear-gradient(135deg, rgba(0,245,255,0.08), rgba(0,245,255,0.02));
+  border:     2px solid var(--p1);
+}
+.result-card.loser {
+  background: var(--s1);
+  border:     1px solid var(--b1);
+  opacity:    0.8;
+}
+.result-card.p2card.winner {
+  background: linear-gradient(135deg, rgba(255,77,141,0.08), rgba(255,77,141,0.02));
+  border:     2px solid var(--p2);
+}
+.winner-crown {
+  position: absolute;
+  top:      -0.5rem;
+  right:    1rem;
+  font-size: 2rem;
+}
+.result-name {
+  font-family:    var(--orb);
+  font-size:      0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom:  0.5rem;
+}
+.result-card.p1card .result-name { color: var(--p1); }
+.result-card.p2card .result-name { color: var(--p2); }
+.result-score-big {
+  font-family:   var(--orb);
+  font-size:     3.5rem;
+  font-weight:   900;
+  line-height:   1;
+  margin-bottom: 0.5rem;
+}
+.result-card.p1card .result-score-big { color: var(--p1); }
+.result-card.p2card .result-score-big { color: var(--p2); }
+.result-stats {
+  font-size: 0.8rem;
+  color:     var(--muted);
+}
+.result-stats span {
+  color:       var(--text);
+  font-weight: 600;
+}
+
+/* Result page buttons */
+.play-again-btn {
+  padding:        1rem 3rem;
+  background:     linear-gradient(135deg, var(--p1), var(--p2));
+  border:         none;
+  border-radius:  12px;
+  font-family:    var(--orb);
+  font-size:      0.85rem;
+  font-weight:    700;
+  letter-spacing: 0.15em;
+  color:          #050810;
+  cursor:         pointer;
+  transition:     all 0.3s;
+  text-transform: uppercase;
+  margin-right:   1rem;
+}
+.play-again-btn:hover {
+  transform:  translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,245,255,0.3);
+}
+.change-topic-btn {
+  padding:        1rem 2rem;
+  background:     transparent;
+  border:         1px solid var(--b2);
+  border-radius:  12px;
+  font-family:    var(--orb);
+  font-size:      0.85rem;
+  letter-spacing: 0.1em;
+  color:          var(--muted);
+  cursor:         pointer;
+  transition:     all 0.2s;
+}
+.change-topic-btn:hover {
+  border-color: var(--muted);
+  color:        var(--text);
+}
+
+
+/* ── RESULT FLASH OVERLAY ─────────────────────────
+   The popup that appears center screen
+   showing correct / wrong after each answer
+─────────────────────────────────────────────── */
+.result-flash {
+  position:    fixed;
+  top:         50%;
+  left:        50%;
+  /* Starts invisible and scaled to 0 */
+  transform:   translate(-50%, -50%) scale(0);
+  z-index:     200;
+  background:  var(--s1);
+  border-radius: 20px;
+  padding:     2rem 3rem;
+  text-align:  center;
+  pointer-events: none;     /* doesn't block clicks behind it */
+  transition:  all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); /* bouncy animation */
+  border:      2px solid transparent;
+}
+/* When JS adds class "show" — scales up to full size */
+.result-flash.show {
+  transform: translate(-50%, -50%) scale(1);
+}
+.result-flash.correct-flash {
+  border-color: var(--correct);
+  box-shadow:   0 0 60px rgba(0,255,136,0.3);
+}
+.result-flash.wrong-flash {
+  border-color: var(--wrong);
+  box-shadow:   0 0 60px rgba(255,68,68,0.3);
+}
+.flash-emoji  { font-size: 3rem; display: block; margin-bottom: 0.5rem; }
+.flash-text   { font-family: var(--orb); font-size: 1rem; letter-spacing: 0.1em; }
+.flash-points { font-family: var(--orb); font-size: 0.75rem; color: var(--gold); margin-top: 0.3rem; }
+
+
+/* ── 9. ANIMATIONS (@keyframes) ──────────────────
+   @keyframes defines HOW an animation moves.
+   Like a timeline from start to end.
+   
+   Think of it like:
+   "At 0% of the animation, do THIS"
+   "At 100% of the animation, do THAT"
+   The browser fills in everything in between.
+─────────────────────────────────────────────── */
+
+/* Scanline scrolling effect */
+@keyframes scanline {
+  0%   { background-position: 0 0; }
+  100% { background-position: 0 100px; }
+}
+
+/* Score bump when points added */
+@keyframes scoreUp {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+.score-anim { animation: scoreUp 0.4s ease; }
+
+/* Shake on wrong answer */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25%      { transform: translateX(-8px); }
+  75%      { transform: translateX(8px); }
+}
+
+/* Pulsing dot on turn indicator */
+@keyframes pulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Animated dots: . .. ... */
+@keyframes dots {
+  0%   { content: ''; }
+  33%  { content: '.'; }
+  66%  { content: '..'; }
+  100% { content: '...'; }
+}
+
+/* Confetti pieces falling */
+.confetti-piece {
+  position:  fixed;
+  top:       -10px;
+  width:     10px;
+  height:    10px;
+  z-index:   300;
+  animation: fall linear forwards;
+}
+@keyframes fall {
+  to {
+    transform: translateY(110vh) rotate(720deg);
+    opacity:   0;
+  }
+}
+
+
+/* ── 10. RESPONSIVE (MOBILE) ─────────────────────
+   @media queries — CSS that only applies
+   when screen is smaller than 768px (phones)
+─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Stack player inputs vertically on small screen */
+  .player-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stack answer options vertically */
+  .options-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stack result cards vertically */
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Smaller score numbers on mobile */
+  .score-num {
+    font-size: 1.5rem;
+  }
+
+  /* Smaller question text on mobile */
+  .q-text {
+    font-size: 1rem;
+  }
+}

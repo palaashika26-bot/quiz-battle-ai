@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QuizBattle AI — Multiplayer Quiz Game</title>
+
+  <!-- Google Fonts — loads special fonts from internet -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Link to our CSS file -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- =============================================
+       PAGE 1 — SETUP PAGE
+       This is the first screen the user sees.
+       Contains: player names, topic input, start button
+  ============================================== -->
+  <div class="page active" id="setupPage">
+
+    <!-- Logo / Title -->
+    <div class="logo">
+      <div class="logo-title">QUIZ BATTLE</div>
+      <div class="logo-sub">AI Multiplayer &middot; 2 Players &middot; Any Topic</div>
+    </div>
+
+    <!-- Setup Card -->
+    <div class="setup-card">
+
+      <!-- Player Names -->
+      <div class="setup-title">// Player Setup</div>
+      <div class="player-inputs">
+        <div class="player-field p1">
+          <label>⚡ Player 1</label>
+          <input type="text" id="p1name" placeholder="Enter name..." maxlength="16" value="Player 1" />
+        </div>
+        <div class="player-field p2">
+          <label>🔥 Player 2</label>
+          <input type="text" id="p2name" placeholder="Enter name..." maxlength="16" value="Player 2" />
+        </div>
+      </div>
+
+      <!-- Topic Input -->
+      <div class="topic-row">
+        <label>⚡ Battle Topic</label>
+        <input type="text" id="topicInput" placeholder="e.g. Harry Potter, Indian History, Python, Football..." />
+      </div>
+
+      <!-- Quick Topic Suggestions -->
+      <div class="topic-suggestions">
+        <button class="sug-btn" onclick="setTopic('Indian History')">🇮🇳 Indian History</button>
+        <button class="sug-btn" onclick="setTopic('Harry Potter')">⚡ Harry Potter</button>
+        <button class="sug-btn" onclick="setTopic('Python Programming')">🐍 Python</button>
+        <button class="sug-btn" onclick="setTopic('Bollywood')">🎬 Bollywood</button>
+        <button class="sug-btn" onclick="setTopic('Science')">🔬 Science</button>
+        <button class="sug-btn" onclick="setTopic('Cricket')">🏏 Cricket</button>
+        <button class="sug-btn" onclick="setTopic('Marvel Universe')">🦸 Marvel</button>
+        <button class="sug-btn" onclick="setTopic('Geography')">🌍 Geography</button>
+      </div>
+
+      <!-- Number of Questions Selector -->
+      <div class="setup-title">// Number of Questions</div>
+      <div class="q-selector" id="qSelector">
+        <button class="q-btn" onclick="setQCount(5, this)">5</button>
+        <button class="q-btn active" onclick="setQCount(10, this)">10</button>
+        <button class="q-btn" onclick="setQCount(15, this)">15</button>
+        <button class="q-btn" onclick="setQCount(20, this)">20</button>
+      </div>
+
+      <!-- Start Button -->
+      <button class="start-btn" id="startBtn" onclick="startGame()">
+        ⚡ START BATTLE
+      </button>
+
+    </div>
+  </div>
+
+
+  <!-- =============================================
+       PAGE 2 — LOADING PAGE
+       Shown while AI is generating questions.
+       Contains: animated progress bar, status text
+  ============================================== -->
+  <div class="page" id="loadingPage">
+    <div class="loading-wrap">
+      <div class="loading-title">// GENERATING BATTLE<span class="loading-dots"></span></div>
+      <div class="loading-topic" id="loadingTopic"></div>
+      <div class="loading-bar-wrap">
+        <div class="loading-bar" id="loadingBar"></div>
+      </div>
+      <div class="loading-status" id="loadingStatus">Initialising AI engine...</div>
+    </div>
+  </div>
+
+
+  <!-- =============================================
+       PAGE 3 — GAME PAGE
+       The main game screen.
+       Contains: scoreboard, timer, question, options
+  ============================================== -->
+  <div class="page" id="gamePage">
+
+    <!-- Scoreboard — shows both player scores -->
+    <div class="scoreboard">
+      <div class="score-panel p1">
+        <div class="score-name" id="p1label">PLAYER 1</div>
+        <div class="score-num" id="p1score">0</div>
+        <div class="score-streak" id="p1streak">No streak yet</div>
+      </div>
+      <div class="middle-col">
+        <span class="vs-text">VS</span>
+        <div class="q-progress" id="qProgress">Q 1 / 10</div>
+      </div>
+      <div class="score-panel p2">
+        <div class="score-name" id="p2label">PLAYER 2</div>
+        <div class="score-num" id="p2score">0</div>
+        <div class="score-streak" id="p2streak">No streak yet</div>
+      </div>
+    </div>
+
+    <!-- Timer Bar -->
+    <div class="timer-wrap">
+      <div class="timer-bar">
+        <div class="timer-fill" id="timerFill"></div>
+      </div>
+      <div class="timer-num" id="timerNum">15s</div>
+    </div>
+
+    <!-- Whose Turn Indicator -->
+    <div class="turn-indicator">
+      <div class="turn-badge t1" id="turnBadge">
+        <div class="turn-dot"></div>
+        <span id="turnText">PLAYER 1'S TURN</span>
+      </div>
+    </div>
+
+    <!-- Question Card -->
+    <div class="question-card">
+      <div class="q-number" id="qNumber">QUESTION 1 OF 10</div>
+      <div class="q-text" id="qText">Loading question...</div>
+    </div>
+
+    <!-- Answer Options — JS fills this with 4 buttons -->
+    <div class="options-grid" id="optionsGrid"></div>
+
+  </div>
+
+
+  <!-- =============================================
+       PAGE 4 — RESULTS PAGE
+       Shown after all questions are answered.
+       Contains: winner, scores, play again button
+  ============================================== -->
+  <div class="page" id="resultsPage">
+    <div class="results-wrap">
+      <div class="results-title" id="resultsTitle">🏆 BATTLE OVER!</div>
+      <div class="results-sub" id="resultsSub">The scores are in...</div>
+      <div id="tieBanner" class="tie-banner" style="display:none;">🤝 IT'S A TIE!</div>
+      <div class="results-grid" id="resultsGrid"></div>
+      <div>
+        <button class="play-again-btn" onclick="playAgain()">🔄 REMATCH</button>
+        <button class="change-topic-btn" onclick="changeTopic()">🎯 New Topic</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- =============================================
+       OVERLAY — RESULT FLASH
+       Pops up in center of screen showing
+       correct / wrong after each answer
+  ============================================== -->
+  <div class="result-flash" id="resultFlash">
+    <span class="flash-emoji" id="flashEmoji"></span>
+    <div class="flash-text" id="flashText"></div>
+    <div class="flash-points" id="flashPoints"></div>
+  </div>
+
+
+  <!-- =============================================
+       SCRIPT TAG — links to our JS file
+       Always put at BOTTOM of body
+       (so HTML loads first, then JS runs)
+  ============================================== -->
+  <script src="script.js"></script>
+
+</body>
+</html>
