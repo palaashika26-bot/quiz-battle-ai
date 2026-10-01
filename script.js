@@ -105,8 +105,13 @@ async function getQuestions(topic, count) {
   });
 
   if (!response.ok) {
-    throw new Error('Could not reach server. Is XAMPP running?');
-  }
+  let msg = 'Server error (' + response.status + ')';
+  try {
+    const err = await response.json();
+    if (err.error) msg = err.error;
+  } catch (e) {}
+  throw new Error(msg);
+}
 
   const data = await response.json();
 
